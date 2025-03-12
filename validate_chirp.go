@@ -2,13 +2,10 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
-	"io"
 	"net/http"
 )
 
 func handlerValidateChirp(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
 
 	type requestBody struct {
 		Body string `json:"body"`
@@ -18,27 +15,22 @@ func handlerValidateChirp(w http.ResponseWriter, r *http.Request) {
 		Valid bool `json:"valid"`
 	}
 
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		respondWithError(w, 500, "couldn't read request")
-		return
-	}
-
-	fmt.Println(string(data))
-
+	decoder := json.NewDecoder(r.Body)
 	params := requestBody{}
-	err = json.Unmarshal(data, &params)
+	err := decoder.Decode(&params)
 	if err != nil {
-		respondWithError(w, 500, "couldn't unmarshal parameters")
+		respondWithError(w, http.StatusInternalServerError, "couldn't decode parameters", err)
 		return
 	}
 
 	if len(params.Body) > 140 {
-		respondWithError(w, 400, "Chirp is too long")
+		respondWithError(w, http.StatusBadRequest, "Chirp is too long", err)
+		return
 	}
 
-	respondWithJSON(w, 200, responseBody{
+	respondWithJSON(w, http.StatusOK, responseBody{
 		Valid: true,
 	})
+	return
 
 }
