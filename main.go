@@ -6,10 +6,8 @@ import (
 	"net/http"
 	"os"
 	"sync/atomic"
-	"time"
 
 	"github.com/benKapl/chirpy/internal/database"
-	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -18,21 +16,6 @@ type apiConfig struct {
 	fileserverHits atomic.Int32
 	db             *database.Queries
 	platform       string
-}
-
-type User struct {
-	ID        uuid.UUID `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Email     string    `json:"email"`
-}
-
-type Chirp struct {
-	ID        uuid.UUID `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Body      string    `json:"body"`
-	UserID    uuid.UUID `json:"user_id"`
 }
 
 func main() {
@@ -69,6 +52,7 @@ func main() {
 	mux.Handle("/app/", middlewareLog(apiCfg.middlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(filepathRoot))))))
 	mux.Handle("GET /api/healthz", middlewareLog(http.HandlerFunc(handlerReadiness)))
 	mux.Handle("POST /api/users", middlewareLog(http.HandlerFunc(apiCfg.handlerCreateUser)))
+	mux.Handle("GET /api/chirps", middlewareLog(http.HandlerFunc(apiCfg.handlerGetChirps)))
 	mux.Handle("POST /api/chirps", middlewareLog(http.HandlerFunc(apiCfg.handlerCreateChirp)))
 	mux.Handle("GET /admin/metrics", middlewareLog(http.HandlerFunc(apiCfg.handlerMetrics)))
 	mux.HandleFunc("POST /admin/reset", apiCfg.handlerReset)
