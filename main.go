@@ -2,16 +2,12 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"sync/atomic"
-	"time"
 
-	"github.com/benKapl/chirpy/internal/auth"
 	"github.com/benKapl/chirpy/internal/database"
-	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -20,14 +16,22 @@ type apiConfig struct {
 	fileserverHits atomic.Int32
 	db             *database.Queries
 	platform       string
+	JWTSecret      string
 }
 
 func main() {
-	userId, _ := uuid.Parse("65ab7f23-d66e-4543-b276-488ffaaad71c")
-	secret := "bouloubou"
-	token, _ := auth.MakeJWT(userId, secret, 60*24*time.Minute)
-	id, _ := auth.ValidateJWT(token, secret)
-	fmt.Println(id)
+	// userId, _ := uuid.Parse("65ab7f23-d66e-4543-b276-488ffaaad71c")
+	// secret := "bouloubou"
+	// token, _ := auth.MakeJWT(userId, secret, 60*24*time.Minute)
+	// id, _ := auth.ValidateJWT(token, secret)
+	// // fmt.Println(id)
+
+	// headers := http.Header{}
+	// headers.Set("Authorizaion", "Bearer d")
+	// token, err := auth.GetBearerToken(headers)
+
+	// fmt.Println(token)
+	// fmt.Println(err)
 
 	const filepathRoot = "."
 	const port = "8080"
@@ -44,6 +48,10 @@ func main() {
 	if platform == "" {
 		log.Fatal("PLATFORM must be set")
 	}
+	JWTSecret := os.Getenv("JWT_SECRET")
+	if JWTSecret == "" {
+		log.Fatal("JWTSecret must be set")
+	}
 
 	dbConn, err := sql.Open("postgres", dbURL)
 	if err != nil {
@@ -56,6 +64,7 @@ func main() {
 		fileserverHits: atomic.Int32{},
 		db:             dbQueries,
 		platform:       platform,
+		JWTSecret:      JWTSecret,
 	}
 
 	mux := http.NewServeMux()
