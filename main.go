@@ -72,6 +72,8 @@ func main() {
 	mux.Handle("GET /api/healthz", middlewareLog(http.HandlerFunc(handlerReadiness)))
 	mux.Handle("POST /api/users", middlewareLog(http.HandlerFunc(apiCfg.handlerCreateUser)))
 	mux.Handle("POST /api/login", middlewareLog(http.HandlerFunc(apiCfg.handlerLogin)))
+	mux.Handle("POST /api/refresh", middlewareLog(http.HandlerFunc(apiCfg.handlerRefresh)))
+	mux.Handle("POST /api/revoke", middlewareLog(http.HandlerFunc(apiCfg.handlerRevoke)))
 	mux.Handle("GET /api/chirps", middlewareLog(http.HandlerFunc(apiCfg.handlerGetChirps)))
 	mux.Handle("GET /api/chirps/{id}", middlewareLog(http.HandlerFunc(apiCfg.handlerGetChirp)))
 	mux.Handle("POST /api/chirps", middlewareLog(http.HandlerFunc(apiCfg.handlerCreateChirp)))
