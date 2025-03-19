@@ -44,16 +44,11 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	expirationTimeJWT := time.Hour
-
-	accessToken, err := auth.MakeJWT(user.ID, cfg.JWTSecret, expirationTimeJWT)
+	accessToken, err := auth.MakeJWT(user.ID, cfg.JWTSecret, time.Hour)
 	if err != nil {
 		respondWithError(w, http.StatusUnauthorized, "Couldn't create access JWT", err)
 		return
 	}
-
-	expirationTimeRefresh := 60 * 24 * time.Hour
-	expiresAt := time.Now().Add(expirationTimeRefresh)
 
 	refreshToken, err := auth.MakeRefreshToken()
 	if err != nil {
@@ -61,11 +56,15 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbRefreshToken, err := cfg.db.CreateRefreshToken(r.Context(), database.CreateRefreshTokenParams{
+	_, err = cfg.db.CreateRefreshToken(r.Context(), database.CreateRefreshTokenParams{
 		Token:     refreshToken,
 		UserID:    user.ID,
-		ExpiresAt: expiresAt,
+		ExpiresAt: time.Now().Add(60 * 24 * time.Hour),
 	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't save refresh token", err)
+		return
+	}
 
 	respondWithJSON(w, http.StatusOK, response{
 		User: User{
@@ -75,6 +74,6 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 			Email:     user.Email,
 		},
 		Token:        accessToken,
-		RefreshToken: dbRefreshToken.Token,
+		RefreshToken: refreshToken,
 	})
 }

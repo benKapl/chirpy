@@ -18,11 +18,11 @@ VALUES (
 RETURNING *;
 
 -- name: GetUserFromRefreshToken :one
-SELECT users.id AS user_id, refresh_tokens.expires_at, refresh_tokens.revoked_at FROM users
-INNER JOIN refresh_tokens
-ON users.id = refresh_tokens.user_id
+SELECT users.* FROM users
+JOIN refresh_tokens ON users.id = refresh_tokens.user_id
 WHERE refresh_tokens.token = $1
-LIMIT 1;
+AND revoked_at IS NULL
+AND expires_at > NOW();
 
 -- name: RevokeRefreshToken :one
 UPDATE refresh_tokens
