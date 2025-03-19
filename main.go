@@ -20,18 +20,6 @@ type apiConfig struct {
 }
 
 func main() {
-	// userId, _ := uuid.Parse("65ab7f23-d66e-4543-b276-488ffaaad71c")
-	// secret := "bouloubou"
-	// token, _ := auth.MakeJWT(userId, secret, 60*24*time.Minute)
-	// id, _ := auth.ValidateJWT(token, secret)
-	// // fmt.Println(id)
-
-	// headers := http.Header{}
-	// headers.Set("Authorizaion", "Bearer d")
-	// token, err := auth.GetBearerToken(headers)
-
-	// fmt.Println(token)
-	// fmt.Println(err)
 
 	const filepathRoot = "."
 	const port = "8080"
@@ -76,7 +64,7 @@ func main() {
 	mux.Handle("POST /api/revoke", middlewareLog(http.HandlerFunc(apiCfg.handlerRevoke)))
 	mux.Handle("GET /api/chirps", middlewareLog(http.HandlerFunc(apiCfg.handlerGetChirps)))
 	mux.Handle("GET /api/chirps/{id}", middlewareLog(http.HandlerFunc(apiCfg.handlerGetChirp)))
-	mux.Handle("POST /api/chirps", middlewareLog(apiCfg.AuthenticateAccessToken(apiCfg.handlerCreateChirp))) // used authent middleware
+	mux.Handle("POST /api/chirps", middlewareLog(apiCfg.AuthenticateAccessToken(http.HandlerFunc(apiCfg.handlerCreateChirp)))) // used authent middleware
 	mux.Handle("GET /admin/metrics", middlewareLog(http.HandlerFunc(apiCfg.handlerMetrics)))
 	mux.HandleFunc("POST /admin/reset", apiCfg.handlerReset)
 
