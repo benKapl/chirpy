@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/benKapl/chirpy/internal/auth"
 	"github.com/benKapl/chirpy/internal/database"
 	"github.com/google/uuid"
 )
@@ -20,7 +19,7 @@ type Chirp struct {
 	UserID    uuid.UUID `json:"user_id"`
 }
 
-func (cfg *apiConfig) handlerCreateChirp(w http.ResponseWriter, r *http.Request) {
+func (cfg *apiConfig) handlerCreateChirp(w http.ResponseWriter, r *http.Request, userID uuid.UUID) {
 	type parameters struct {
 		Body string `json:"body"`
 	}
@@ -29,20 +28,15 @@ func (cfg *apiConfig) handlerCreateChirp(w http.ResponseWriter, r *http.Request)
 		Chirp
 	}
 
-	token, err := auth.GetBearerToken(r.Header)
-	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, "Couldn't find JWT", err)
-		return
-	}
-	userID, err := auth.ValidateJWT(token, cfg.JWTSecret)
-	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, "Couldn't validate JWT", err)
+	userID, ok := r.Context().Value("userID").(uuid.UUID)
+	if !ok {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't get user ID from context", nil)
 		return
 	}
 
 	decoder := json.NewDecoder(r.Body)
 	params := parameters{}
-	err = decoder.Decode(&params)
+	err := decoder.Decode(&params)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't decode parameters", err)
 		return

@@ -76,7 +76,7 @@ func main() {
 	mux.Handle("POST /api/revoke", middlewareLog(http.HandlerFunc(apiCfg.handlerRevoke)))
 	mux.Handle("GET /api/chirps", middlewareLog(http.HandlerFunc(apiCfg.handlerGetChirps)))
 	mux.Handle("GET /api/chirps/{id}", middlewareLog(http.HandlerFunc(apiCfg.handlerGetChirp)))
-	mux.Handle("POST /api/chirps", middlewareLog(http.HandlerFunc(apiCfg.handlerCreateChirp)))
+	mux.Handle("POST /api/chirps", middlewareLog(apiCfg.AuthenticateAccessToken(apiCfg.handlerCreateChirp))) // used authent middleware
 	mux.Handle("GET /admin/metrics", middlewareLog(http.HandlerFunc(apiCfg.handlerMetrics)))
 	mux.HandleFunc("POST /admin/reset", apiCfg.handlerReset)
 
@@ -87,11 +87,4 @@ func main() {
 
 	log.Printf("Serving files from %s on port: %s\n", filepathRoot, port)
 	log.Fatal(srv.ListenAndServe())
-}
-
-func middlewareLog(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("%s %s", r.Method, r.URL.Path)
-		next.ServeHTTP(w, r)
-	})
 }
