@@ -2,12 +2,16 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"sync/atomic"
+	"time"
 
+	"github.com/benKapl/chirpy/internal/auth"
 	"github.com/benKapl/chirpy/internal/database"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -19,6 +23,11 @@ type apiConfig struct {
 }
 
 func main() {
+	userId, _ := uuid.Parse("65ab7f23-d66e-4543-b276-488ffaaad71c")
+	secret := "bouloubou"
+	token, _ := auth.MakeJWT(userId, secret, 60*24*time.Minute)
+	fmt.Printf("token: %+v\n", token)
+
 	const filepathRoot = "."
 	const port = "8080"
 
