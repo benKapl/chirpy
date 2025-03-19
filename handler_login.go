@@ -14,11 +14,13 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Password         string `json:"password"`
 		Email            string `json:"email"`
-		ExpiresInSeconds *int   `json:"expires_in_seconds,omitempty"`
+		ExpiresInSeconds int    `json:"expires_in_seconds"`
 	}
 
 	type response struct {
 		User
+		Token        string `json:"token,omitempty"`
+		RefreshToken string `json:"refresh_token"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -28,18 +30,6 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't decode parameters", err)
 		return
-	}
-
-	var expirationSeconds int
-	// If client doesnt specify expiration
-	if params.ExpiresInSeconds == nil {
-		expirationSeconds = defaultExpirationSeconds
-	} else {
-		expirationSeconds = *params.ExpiresInSeconds
-		// if client has duration above 1 hour
-		if expirationSeconds > defaultExpirationSeconds {
-			expirationSeconds = defaultExpirationSeconds
-		}
 	}
 
 	user, err := cfg.db.GetUser(r.Context(), params.Email)
@@ -54,9 +44,14 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := auth.MakeJWT(user.ID, cfg.JWTSecret, time.Duration(expirationSeconds)*time.Second)
+	expirationTime := time.Hour
+	if params.ExpiresInSeconds > 0 && params.ExpiresInSeconds < 3600 {
+		expirationTime = time.Duration(params.ExpiresInSeconds) * time.Second
+	}
+
+	accessToken, err := auth.MakeJWT(user.ID, cfg.JWTSecret, expirationTime)
 	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, "Error creating JWT", err)
+		respondWithError(w, http.StatusUnauthorized, "Couldn't create access JWT", err)
 		return
 	}
 
@@ -66,7 +61,7 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 			CreatedAt: user.CreatedAt,
 			UpdatedAt: user.UpdatedAt,
 			Email:     user.Email,
-			Token:     token,
 		},
+		Token: accessToken,
 	})
 }
