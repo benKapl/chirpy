@@ -1,6 +1,11 @@
 package auth
 
-import "testing"
+import (
+	"testing"
+	"time"
+
+	"github.com/google/uuid"
+)
 
 func TestCheckPasswordHash(t *testing.T) {
 	// First, we need to create some hashed passwords for testing
@@ -52,6 +57,54 @@ func TestCheckPasswordHash(t *testing.T) {
 			err := CheckPasswordHash(tt.password, tt.hash)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CheckPasswordHash() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestValidateJwt(t *testing.T) {
+	// Create data necessary for test
+	userID := uuid.New()
+	validSecret := "this_is_the_secret_to_use"
+	wrongSecret := "this_is_wrong_secret"
+	validExpiration := 24 * time.Hour
+	passedExpiration := -24 * time.Hour // yesterday
+
+	// Create tests jwt
+	jwt, _ := MakeJWT(userID, validSecret, validExpiration)
+	expiredJWT, _ := MakeJWT(userID, validSecret, passedExpiration)
+
+	tests := []struct {
+		name    string
+		jwt     string
+		secret  string
+		wantErr bool
+	}{
+		{
+			name:    "Valid JWT",
+			jwt:     jwt,
+			secret:  validSecret,
+			wantErr: false,
+		},
+		{
+			name:    "Wrong secret JWT",
+			jwt:     jwt,
+			secret:  wrongSecret,
+			wantErr: true,
+		},
+		{
+			name:    "Expired JWT",
+			jwt:     expiredJWT,
+			secret:  validSecret,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := ValidateJWT(tt.jwt, tt.secret)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ValidateJWT() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
