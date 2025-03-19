@@ -9,15 +9,15 @@ import (
 
 func TestValidateJwt(t *testing.T) {
 	// Create data necessary for test
-	userId, _ := uuid.Parse("65ab7f23-d66e-4543-b276-488ffaaad71c")
+	userID := uuid.New()
 	validSecret := "this_is_the_secret_to_use"
 	wrongSecret := "this_is_wrong_secret"
 	validExpiration := 24 * time.Hour
 	passedExpiration := -24 * time.Hour // yesterday
 
 	// Create tests jwt
-	jwt, _ := MakeJWT(userId, validSecret, validExpiration)
-	expiredJWT, _ := MakeJWT(userId, validSecret, passedExpiration)
+	jwt, _ := MakeJWT(userID, validSecret, validExpiration)
+	expiredJWT, _ := MakeJWT(userID, validSecret, passedExpiration)
 
 	tests := []struct {
 		name    string

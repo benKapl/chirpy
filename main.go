@@ -26,7 +26,8 @@ func main() {
 	userId, _ := uuid.Parse("65ab7f23-d66e-4543-b276-488ffaaad71c")
 	secret := "bouloubou"
 	token, _ := auth.MakeJWT(userId, secret, 60*24*time.Minute)
-	fmt.Printf("token: %+v\n", token)
+	id, _ := auth.ValidateJWT(token, secret)
+	fmt.Println(id)
 
 	const filepathRoot = "."
 	const port = "8080"
