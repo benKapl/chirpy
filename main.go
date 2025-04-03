@@ -59,6 +59,7 @@ func main() {
 	mux.Handle("/app/", middlewareLog(apiCfg.middlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(filepathRoot))))))
 	mux.Handle("GET /api/healthz", middlewareLog(http.HandlerFunc(handlerReadiness)))
 	mux.Handle("POST /api/users", middlewareLog(http.HandlerFunc(apiCfg.handlerCreateUser)))
+	mux.Handle("PUT /api/users", middlewareLog(apiCfg.AuthenticateAccessToken(http.HandlerFunc(apiCfg.handlerUpdateUser))))
 	mux.Handle("POST /api/login", middlewareLog(http.HandlerFunc(apiCfg.handlerLogin)))
 	mux.Handle("POST /api/refresh", middlewareLog(http.HandlerFunc(apiCfg.handlerRefresh)))
 	mux.Handle("POST /api/revoke", middlewareLog(http.HandlerFunc(apiCfg.handlerRevoke)))
