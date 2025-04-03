@@ -65,6 +65,7 @@ func main() {
 	mux.Handle("POST /api/revoke", middlewareLog(http.HandlerFunc(apiCfg.handlerRevoke)))
 	mux.Handle("GET /api/chirps", middlewareLog(http.HandlerFunc(apiCfg.handlerGetChirps)))
 	mux.Handle("GET /api/chirps/{id}", middlewareLog(http.HandlerFunc(apiCfg.handlerGetChirp)))
+	mux.Handle("DELETE /api/chirps/{id}", middlewareLog(apiCfg.AuthenticateAccessToken(http.HandlerFunc(apiCfg.handlerDeleteChirp))))
 	mux.Handle("POST /api/chirps", middlewareLog(apiCfg.AuthenticateAccessToken(http.HandlerFunc(apiCfg.handlerCreateChirp)))) // used authent middleware
 	mux.Handle("GET /admin/metrics", middlewareLog(http.HandlerFunc(apiCfg.handlerMetrics)))
 	mux.HandleFunc("POST /admin/reset", apiCfg.handlerReset)

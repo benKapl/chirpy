@@ -16,11 +16,17 @@ DELETE FROM users;
 SELECT * FROM users
 where email = $1;
 
--- name: UpdateUser :one
+-- name: UpdateUserCredentials :one
 UPDATE users 
 SET 
     updated_at = NOW(),
     email = $2,
     hashed_password = $3
+WHERE id = $1
+RETURNING *;
+
+-- name: UpdateUserChirpyRed :one
+UPDATE users 
+SET is_chirpy_red = true
 WHERE id = $1
 RETURNING *;

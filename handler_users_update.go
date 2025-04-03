@@ -49,7 +49,7 @@ func (cfg *apiConfig) handlerUpdateUser(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	user, err := cfg.db.UpdateUser(context.Background(), database.UpdateUserParams{
+	user, err := cfg.db.UpdateUserCredentials(context.Background(), database.UpdateUserCredentialsParams{
 		ID:             userID,
 		Email:          params.Email,
 		HashedPassword: hash,
