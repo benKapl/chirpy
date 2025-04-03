@@ -110,3 +110,23 @@ func GetBearerToken(headers http.Header) (string, error) {
 	bearerToken := strings.Replace(authHeader, bearerPrefix, "", 1)
 	return bearerToken, nil
 }
+
+func GetApiKey(headers http.Header) (string, error) {
+	authHeader := headers.Get("Authorization")
+	if authHeader == "" {
+		return "", fmt.Errorf("Authorization header not found")
+	}
+
+	apiKeyPrefix := "ApiKey "
+
+	if !strings.HasPrefix(authHeader, apiKeyPrefix) {
+		return "", fmt.Errorf("Invalid authorization header format")
+	}
+
+	if authHeader == apiKeyPrefix {
+		return "", fmt.Errorf("No api key provided")
+	}
+
+	apiKey := strings.Replace(authHeader, apiKeyPrefix, "", 1)
+	return apiKey, nil
+}

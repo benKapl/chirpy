@@ -17,6 +17,7 @@ type apiConfig struct {
 	db             *database.Queries
 	platform       string
 	JWTSecret      string
+	polkaKey       string
 }
 
 func main() {
@@ -41,6 +42,11 @@ func main() {
 		log.Fatal("JWTSecret must be set")
 	}
 
+	polkaKey := os.Getenv("POLKA_KEY")
+	if polkaKey == "" {
+		log.Fatal("polkaKey must be set")
+	}
+
 	dbConn, err := sql.Open("postgres", dbURL)
 	if err != nil {
 		log.Fatal("Error connecting to database")
@@ -53,6 +59,7 @@ func main() {
 		db:             dbQueries,
 		platform:       platform,
 		JWTSecret:      JWTSecret,
+		polkaKey:       polkaKey,
 	}
 
 	mux := http.NewServeMux()
