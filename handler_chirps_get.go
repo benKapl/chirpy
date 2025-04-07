@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"sort"
 
 	"github.com/benKapl/chirpy/internal/database"
 	"github.com/google/uuid"
@@ -9,14 +10,20 @@ import (
 
 func (cfg *apiConfig) handlerGetChirps(w http.ResponseWriter, r *http.Request) {
 
-	userID := r.URL.Query().Get("author_id")
+	authorIDString := r.URL.Query().Get("author_id")
+	sortOrder := r.URL.Query().Get("sort")
 
 	var dbChirps []database.Chirp
 	var err error
 
-	if userID != "" {
-		userID, _ := uuid.Parse(userID)
-		dbChirps, err = cfg.db.GetChirpsByUserId(r.Context(), userID)
+	if authorIDString != "" {
+		authorID, err := uuid.Parse(authorIDString)
+		if err != nil {
+			respondWithError(w, http.StatusBadRequest, "Invalid author ID", err)
+			return
+		}
+
+		dbChirps, err = cfg.db.GetChirpsByUserId(r.Context(), authorID)
 	} else {
 		dbChirps, err = cfg.db.GetChirps(r.Context())
 	}
@@ -35,6 +42,18 @@ func (cfg *apiConfig) handlerGetChirps(w http.ResponseWriter, r *http.Request) {
 			Body:      dbChirp.Body,
 			UserID:    dbChirp.UserID,
 		}
+	}
+
+	switch sortOrder {
+	case "", "asc":
+		// default or ascending order, no need to sort as the default is assumed asc
+	case "desc":
+		sort.Slice(chirps, func(i, j int) bool {
+			return chirps[i].CreatedAt.After(chirps[j].CreatedAt)
+		})
+	default:
+		respondWithError(w, http.StatusBadRequest, "Invalid sort order", nil)
+		return
 	}
 
 	respondWithJSON(w, http.StatusOK, chirps)
