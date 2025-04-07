@@ -11,7 +11,6 @@ import (
 func (cfg *apiConfig) handlerGetChirps(w http.ResponseWriter, r *http.Request) {
 
 	authorIDString := r.URL.Query().Get("author_id")
-	sortOrder := r.URL.Query().Get("sort")
 
 	var dbChirps []database.Chirp
 	var err error
@@ -43,6 +42,8 @@ func (cfg *apiConfig) handlerGetChirps(w http.ResponseWriter, r *http.Request) {
 			UserID:    dbChirp.UserID,
 		}
 	}
+
+	sortOrder := r.URL.Query().Get("sort")
 
 	switch sortOrder {
 	case "", "asc":
